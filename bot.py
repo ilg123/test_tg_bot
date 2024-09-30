@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 import requests 
+from typing import Any, Dict
 
 from decouple import config
 from aiogram import Bot, Dispatcher, html, Router
@@ -28,10 +29,16 @@ async def command_start(message: Message, state: FSMContext):
     )
 
 @form_router.message(Form.name)
-async def process_name(message: Message, state: FSMContext):
-    await state.update_data(name=message.text)
+async def process_name(message: Message, state: FSMContext,):
+    data = await state.update_data(name=message.text)
+    await state.clear()
+
+    await show_name(message=message, data=data)
+
+async def show_name(message: Message, data: Dict[str, Any], positive: bool = True):
+    name = data["name"]
     usd = await get_exchange_rate()
-    await message.answer(f'Рад знакомству, {message.text}! Курс доллара сегодня {int(usd)}р')
+    await message.answer(f'Рад знакомству, {name}! Курс доллара сегодня {int(usd)}р')
 
 async def get_exchange_rate():
     res = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
